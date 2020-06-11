@@ -9,6 +9,8 @@ aws iam create-group --group-name CloudTrailAdmins
 aws iam list-policies --query 'Policies[?starts_with(PolicyName,`AWSCloudTrail`)]'
 
 aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/AWSCloudTrailFullAccess --group-name CloudTrailAdmins
+
+aws iam attach-group-policy --policy-arn arn:aws:iam::aws:policy/IAMUserChangePassword --group-name CloudTrailAdmins
 ```
 
 I am adding `arn:aws:iam::aws:policy/IAMUserChangePassword` so users can change their passwords.

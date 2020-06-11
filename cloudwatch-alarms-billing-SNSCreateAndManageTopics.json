@@ -1,0 +1,15 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:ListTopics",
+        "sns:SetTopicAttributes",
+        "sns:DeleteTopic"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
