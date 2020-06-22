@@ -137,6 +137,7 @@ An error occurred (AccessDenied) when calling the ListUsers operation: User: arn
 
 ## Option 2: Create a role the user can utilize
 
+
 1. Create IAM policy
 
 ```shell
@@ -203,23 +204,115 @@ Result:
 
 *Note:* we need to associate two policies with the role: a trust policy that controls who can assume the role, and an access policy that controls which actions can be performed on which resources by assuming the role.
 
-3. Create an IAM role and attach the previously created policy
-(with the name you specified in your policy's resource)
+3. Create an IAM role
+(with the name you specified in your policy's resource: `test-user-role`)
 
 ```shell
-aws iam create-role --role-name test-user-role --assume-role-policy-document file://policy.json
+aws iam create-role --role-name test-user-role --assume-role-policy-document file://test-trust-policy.json
 ```
 
+Result:
+```json
+{
+    "Role": {
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17", 
+            "Statement": {
+                "Action": "sts:AssumeRole", 
+                "Effect": "Allow", 
+                "Principal": {
+                    "AWS": "arn:aws:iam::your-aws-account-id:user/test-us-1"
+                }
+            }
+        }, 
+        "RoleId": "AROAYQ5AHLCLUO2O33SXI", 
+        "CreateDate": "2020-06-22T20:48:08Z", 
+        "RoleName": "test-user-role", 
+        "Path": "/", 
+        "Arn": "arn:aws:iam::your-aws-account-id:role/test-user-role"
+    }
+}
+```
 
-### Optionals...
+Until now, the user has only permissions to assume the role `test-user-role` in a particular account `your-aws-account-id`
 
-8. Detach a policy from a user
+4. Attach policy to role
+
+```shell
+aws iam attach-role-policy --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess --role-name test-user-role
+```
+
+Go to https://console.aws.amazon.com/iam/home?region=${your-region}#/roles/${your-role}?section=trust
+
+You should see...
+
+**Trusted entities**
+The following trusted entities can assume this role.
+Trusted entities
+The account `your-aws-account-id`
+
+**Conditions**
+The following conditions define how and when trusted entities can assume the role.
+```
+Condition	Key	                        Value
+Bool	    aws:MultiFactorAuthPresent	true
+```
+
+Grab the URL provided under `Give this link to users who can switch roles in the console`
+Example: 
+```
+https://signin.aws.amazon.com/switchrole?roleName=${your-role}&account=${your-account-name}
+```
+
+Then, in the landing page click on `Switch Role`
+
+At the top of AWS web-app, you will see `test-user-role @ your-organization`
+Remember... This role has just access to read S3, or, list bucket and list objects.
+Go to S3 and you will see all the available buckets; enter to one bucket and you will see its objects. However, any other service **will fail** due to the lack of permissions.
+
+---
+
+## Optional for Step 1
+
+1. Detach a policy from a user
 
 ```shell
 aws iam detach-user-policy --user-name test-us-1 --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
 ```
 
-9. Remove MFA device
+## Optionals for Step 2
+
+1. Delete role
+
+First, we need to detach all policies (in this case, the one we added)
+
+```shell
+aws iam detach-role-policy --role-name test-user-role --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+```
+
+Now we can delete it...
+
+```shell 
+aws iam delete-role --role-name test-user-role
+```
+
+2. Delete Policy
+
+First we need to detach the policy from the user entity.
+```shell
+aws iam detach-user-policy --user-name test-us-1 --policy-arn arn:aws:iam::your-aws-account-id:policy/test-user-policy
+```
+
+Then,
+
+```shell
+aws iam delete-policy --policy-arn arn:aws:iam::your-aws-account-id:policy/test-user-policy  
+```
+
+## For both (Option 1 and Option 2)
+
+
+1. Remove MFA device
 
 First we need to deactivate, then delete.
 
@@ -229,13 +322,14 @@ aws iam deactivate-mfa-device --user-name test-us-1 --serial-number arn:aws:iam:
 aws iam delete-virtual-mfa-device --serial-number arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa
 ```
 
-10. Delete user
+2. Delete user access keys
 
-<!--
-Hacer
-Eliminar usuarios
-Eliminar virtual devices
-Crear usuario, crear MFA pero no assignar y ver que apaece cuando listo
-Delete policy
-Delete role
--->
+```shell
+aws iam delete-access-key --access-key-id *** --user-name test-us-1
+```
+
+3. Delete user
+
+```shell
+aws iam delete-user --user-name test-us-1
+```
