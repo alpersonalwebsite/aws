@@ -1,0 +1,72 @@
+Description: SSM
+
+Resources:
+  EC2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      RoleName: ec2-instance-role
+
+  EC2InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EC2InstanceRole
+
+  EC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security group with no rules
+      GroupName: SSM-Security-group
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties: 
+      ImageId: ami-0323c3dd2da7fb37d
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      SecurityGroupIds:
+        - Ref: EC2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: SSM-EC2
+
+  IAMroleToLoginIntoInstance:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+              - !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+      Path: /
+      RoleName: IAMroleToLoginIntoInstance
+      Policies:
+        - PolicyName: IAMroleToLoginIntoInstanceSessionManager
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: ssm:StartSession
+                Resource: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2Instance}
+              - Effect: Allow
+                Action: ssm:TerminateSession
+                Resource: arn:aws:ssm:*:*:session/${aws:username}-*
