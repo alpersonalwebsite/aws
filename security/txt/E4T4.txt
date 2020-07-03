@@ -1,0 +1,16 @@
+Task 4: Questions and Analysis
+
+What additional architectural change can be made to reduce the internet-facing attack surface of the web application instance.
+We could add a cloud firewall (example AWS WAF) and a reverse proxy.
+
+Assuming the IAM permissions for the S3 bucket are still insecure, would creating VPC private endpoints for S3 prevent the unauthorized access to the secrets bucket.
+No. The connection between Application and S3 will be inside AWS network, but if the permissions are wrong or wider, attackers could interact with the S3 bucket.
+
+Will applying default encryption setting to the s3 buckets encrypt the data that already exists?
+No. They objects that we have will remain with they original SSE (in this case, none)
+
+The changes you made above were done through the console or CLI; describe the outcome if the original cloud formation templates are applied to this environment?
+If we try to update the stack nothing will happen and CFN will return: 
+An error occurred (ValidationError) when calling the UpdateStack operation: No updates are to be performed.
+
+If we delete and create the stack with the original template, we will have the original issues.

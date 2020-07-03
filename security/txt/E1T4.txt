@@ -1,0 +1,25 @@
+Task 4: Identify Bad Practices
+Based on the architecture diagram, and the steps you have taken so far to upload data and access the application web service, identify at least 2 obvious poor practices as it relates to security. List these 2 practices, and a justification for your choices, in the text file named E1T4.txt.
+
+---
+
+1. Instead of potentially "SSHing" to the EC2 instance we should use an Instance Profile Role to obtain temporary credentials aligned with that role and connect to the EC2 using AWS Systems Manager.
+
+2. In the ACL we are allowing ALL traffic for ALL ports for both, inbound and outbound.
+We should be more specific and reduce, at least, the scope of the inbound rule.
+
+3. Application Load Balancer should use TLS (HTTPS 443)
+
+4. We could reduce the permissions of the role InstanceRolePolicy-C3. Currently Full S3.
+
+5. sg-02a07eee0db50dd42 - WebAppSG should use as source sg-0b3a674138514e054 - AppLoadBalancerSG
+
+5. S3 buckets don't have policies nor versioning enabled.
+
+6. The secret bucket doesn't have SSE enabled by default. 
+
+7. We could use VPC endpoints particularly for the secret bucket
+
+Access to port 22 (aka, SSH) is discouraged, but, if it is used source should be our IP or other trusted source.
+
+

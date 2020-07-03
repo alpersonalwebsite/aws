@@ -1,0 +1,14 @@
+Exercise 3 - Attack Simulation
+
+Answer the following questions:
+
+1. What findings were detected related to the brute force attack?
+Two findings.
+One, 10.192.11.226 is performing SSH brute force attacks against i-060084a1e3865dddf (aka, Web Service Instance - C3). 
+The other, i-01bfbbecfa3d5a82e (aka, -01bfbbecfa3d5a82e) is performing SSH brute force attacks against 10.192.10.13.
+
+
+2. Research the AWS Guard Duty documentation page and explain how GuardDuty may have detected this attack - i.e. what was its source of information?
+Amazon GuardDuty is a continuous security monitoring service that analyzes and processes the following data sources: VPC Flow Logs, AWS CloudTrail event logs, and DNS logs. 
+
+GuardDuty can detect compromised EC2 instances serving malware or mining bitcoin. It also monitors AWS account access behavior for signs of compromise, such as unauthorized infrastructure deployments, like instances deployed in a Region that has never been used, or unusual API calls, like a password policy change to reduce password strength. 

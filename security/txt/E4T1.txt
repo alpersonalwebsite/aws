@@ -1,0 +1,18 @@
+Exercise 4 - Implement Security Hardening
+
+Task 1 - Remediation plan
+As a Cloud Architect, you have been asked to apply security best practices to the environment so that it can withstand attacks and be more secure.
+
+Identify 2-3 changes that can be made to our environment to prevent an SSH brute force attack from the internet.
+We could...
+1. Disable SSH
+2. Allow just our IP or trusted IPs in the Inbound rules of the Security Group
+3. Use IAM instance profile for System Manager
+4. Enable MFA in our instances: https://aws.amazon.com/blogs/startups/securing-ssh-to-amazon-ec2-linux-hosts/
+5. Disable SSH password login on the application server instance.
+6. Have a tighter rule in our Network ACLs
+7. Use a VPN
+
+Neither instance should have had access to the secret recipes bucket; 
+even in the instance that API credentials were compromised how could we have prevented access to sensitive data?
+We could apply the least privilege principle to the role InstanceRolePolicy-C3 which has ALL actions for S3 (reducing its scope, actions or attached policies)

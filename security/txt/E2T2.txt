@@ -1,0 +1,46 @@
+Task 2: Identify and Triage Vulnerabilities
+
+Research and analyze which of the vulnerabilities appear to be related to the code that was deployed for the environment in this project. Provide recommendations on how to remediate the vulnerabilities. Submit your findings in E2T2.txt
+
+---
+
+AWS config
+
+1. sg-02a07eee0db50dd42 -> Noncompliant resource
+  1.1. RDP no restricted
+  1.2. SSH no restricted
+
+2. sg-05eb24ab0ad95b779 -> Noncompliant resource
+  1.1. SSH no restricted
+
+3. c1-web-service-alb
+  3.1 HTTP listener rule must have HTTP to HTTPS redirection action configured
+
+
+AWS inspector
+
+i-060084a1e3865dddf is Web Service Instance - C3
+
+1. Minimum length for passwords is not configured on instance i-060084a1e3865dddf in your assessment target.
+2. Instance i-060084a1e3865dddf is configured to support password authentication over SSH.
+3. On instance i-060084a1e3865dddf, process 'systemd-netwo' is listening on UDP port 68 which is associated with 'DHCP' and is reachable from the internet
+4. On instance i-060084a1e3865dddf, process 'sshd' is listening on TCP port 22 which is associated with 'SSH' and is reachable from the internet
+5. On instance i-060084a1e3865dddf, process 'python3' is listening on TCP port 5000 which is reachable from the internet
+6. Countless informational findings related to TCP ports reachable from internet
+
+
+AWS GuardDuty
+No findings
+
+
+From ALL the findings, and without the suggested improvements/fixes consigned on E1T4, we could...
+1. Allow just the needed ports (which will block SSH, RDP, etc)
+2. Enforce HTTPS redirection
+3. Set a minimum length for passwords for EC2 instances
+
+
+
+More info:
+sg-0b3a674138514e054 -> AppLoadBalancerSG
+sg-05eb24ab0ad95b779 -> AttackInstanceSG
+sg-02a07eee0db50dd42 -> WebAppSG

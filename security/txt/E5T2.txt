@@ -1,0 +1,23 @@
+Task 2 - Tools and Documentation
+You will need to determine appropriate tools to incorporate into the pipeline to ensure that security vulnerabilities are found.
+For each tool - identify an example compliance violation or vulnerability which it might expose.
+
+Identify tools that will allow you to do the following: 
+
+a. Scan infrastructure as code templates. 
+- Cfripper: https://github.com/Skyscanner/cfripper
+Example:
+Checks for any wildcard principals defined in any statements.
+(It might allow other AWS identities to escalate privileges)
+
+b. Scan AMI’s or containers for OS vulnerabilities. 
+- Trivy: https://github.com/aquasecurity/trivy#examples
+Example:
+Scan a project including a lock file finding vulnerabilities in the installed libraries
+SQL injection via StringAgg(delimiter) in django version 2.0.9 [CVE-2020-7471]
+
+c. Scan an AWS environment for cloud configuration vulnerabilities.
+- AWS Config: how a particular resource is configured, when it changed, and what was changed
+Example: Security Group allows RDP access from all IPs
+
+We can use it with AWS Security Hub to aggregate its findings into a single place (along with Inspector, GuardDuty and other commercial tools)
