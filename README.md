@@ -113,12 +113,14 @@ correct and the variable was wrong.
 One thing in that file is **deliberately** not a `!Sub`:
 
 ```yaml
-Resource: arn:aws:ssm:*:*:session/${aws:username}-*
+Resource: arn:aws:ssm:*:*:session/${aws:userid}-*
 ```
 
-`${aws:username}` is an IAM policy variable that IAM expands at evaluation time, so it has to
+`${aws:userid}` is an IAM policy variable that IAM expands at evaluation time, so it has to
 reach IAM as a literal. Wrapping it in `!Sub` makes CloudFormation try to resolve it: verified
-with `cfn-lint`, which reports `E1019 'aws:username' is not one of [...]`.
+with `cfn-lint`, which reports `E1019 'aws:userid' is not one of [...]`. The same is true of
+`aws:username`, which is what this example used to show — and leaving it there meant a reader
+could copy the variable this branch had just replaced.
 
 **Placeholders were spelled three different ways** — `your-aws-account-id` (54 occurrences),
 `your-admin-account-id` (11) and `your-account-id` (1) — alongside a concrete bucket name and two

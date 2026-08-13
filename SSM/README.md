@@ -42,15 +42,11 @@ users" while "requests that are made using ... IAM roles do not include this key
 exists to be assumed, so `aws:username` is never present and terminate/resume could never
 match their own session.
 
-```
-Effect: Allow
-Action ssm:StartSession
-Resource: EC2-arn
-
-Effect: Allow
-Action: ssm:TerminateSession
-Resource: arn:aws:ssm:*:*:session/${aws:username}-*
-```
+The authoritative version is the `SessionManagerAccess` policy in
+[`SSM.yml`](SSM.yml), and it is deliberately not repeated here. A fragment used to sit at this
+spot showing `Resource: EC2-arn` with no document ARN and `${aws:username}` — i.e. the two
+things the paragraphs above explain are wrong — because the prose was corrected and the
+example beside it was not. One copy, in the template, is the fix for that.
 
 ## Creating SSM stack
 ```terminal
@@ -76,7 +72,7 @@ stack can be deployed more than once, so take the name from the stack's `LoginRo
 rather than searching for a literal:
 
 ```shell
-aws cloudformation describe-stacks --stack-name ssm \
+aws cloudformation describe-stacks --stack-name SSM \
   --query "Stacks[0].Outputs[?OutputKey=='LoginRoleArn'].OutputValue" --output text
 ```
 
