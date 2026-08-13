@@ -2,17 +2,25 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "MetricsHaveNoResourceType",
+      "Effect": "Allow",
       "Action": [
         "cloudwatch:GetMetricStatistics",
         "cloudwatch:ListMetrics",
-        "cloudwatch:PutMetricData",
+        "cloudwatch:PutMetricData"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "AlarmsScopedToTheBillingAlarm",
+      "Effect": "Allow",
+      "Action": [
         "cloudwatch:PutMetricAlarm",
-        "cloudwatch:SetAlarmState",
         "cloudwatch:DescribeAlarms",
+        "cloudwatch:SetAlarmState",
         "cloudwatch:DeleteAlarms"
       ],
-      "Effect": "Allow",
-      "Resource": "*"
+      "Resource": "arn:aws:cloudwatch:us-east-1:YOUR-ACCOUNT-ID:alarm:billing-*"
     }
   ]
 }

@@ -4,10 +4,9 @@
     {
       "Effect": "Allow",
       "Action": [
-        "s3:PutObject",
-        "s3:PutObjectAcl"
+        "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::my-bucket-8200334565/*"
+      "Resource": "arn:aws:s3:::YOUR-BUCKET-NAME/*"
     }
   ]
 }
