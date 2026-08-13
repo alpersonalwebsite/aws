@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Environment files and anything shaped like a credential. This repository is entirely about
+# AWS access control, and several walkthroughs have you create keys, roles and key pairs.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets/
+
+# Local AWS config, which is where the credentials this repo talks about actually live
+.aws/
+kubeconfig
+kubeconfig.yaml
+
+# Tool output
+node_modules/
+__pycache__/
+*.sqlite
+*.db
+
+# cloudsploit clones its scan definitions here (was security/.gitignore)
+security/cloudsploit/scans

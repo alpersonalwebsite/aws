@@ -21,7 +21,7 @@ Example output:
         "CreateDate": "2020-07-02T16:47:05Z", 
         "UserId": "AI*****Q**5R**********J4I", 
         "Path": "/", 
-        "Arn": "arn:aws:iam::your-aws-account-id:user/cloudsploit"
+        "Arn": "arn:aws:iam::YOUR-ACCOUNT-ID:user/cloudsploit"
     }
 }
 ```

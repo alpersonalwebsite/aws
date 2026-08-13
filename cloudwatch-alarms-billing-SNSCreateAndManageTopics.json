@@ -2,14 +2,20 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "ListIsNotResourceScopable",
+      "Effect": "Allow",
+      "Action": "sns:ListTopics",
+      "Resource": "*"
+    },
+    {
+      "Sid": "ManageOnlyTheBillingTopic",
       "Effect": "Allow",
       "Action": [
         "sns:CreateTopic",
-        "sns:ListTopics",
         "sns:SetTopicAttributes",
         "sns:DeleteTopic"
       ],
-      "Resource": "*"
+      "Resource": "arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-*"
     }
   ]
 }

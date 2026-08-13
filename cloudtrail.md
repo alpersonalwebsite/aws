@@ -59,7 +59,7 @@ cloudtrail-S3PolicyForCloudTrail.json
         ]
       },
       "Action": "s3:PutObject",
-      "Resource": "arn:aws:s3:::your-trail-logs-bucket00112233/AWSLogs/your-admin-account-id/*",
+      "Resource": "arn:aws:s3:::your-trail-logs-bucket00112233/AWSLogs/YOUR-ACCOUNT-ID/*",
       "Condition": {
         "StringEquals": {
           "s3:x-amz-acl": "bucket-owner-full-control"
@@ -72,7 +72,7 @@ cloudtrail-S3PolicyForCloudTrail.json
 
 *Notes:*
 * your-trail-logs-bucket00112233 -> bucket
-* your-admin-account-id -> account id (master account)
+* YOUR-ACCOUNT-ID -> account id (master account)
 
 *More info:* https://docs.aws.amazon.com/awscloudtrail/latest/userguide/create-s3-bucket-policy-for-cloudtrail.html
 

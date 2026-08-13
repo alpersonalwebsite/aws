@@ -1,3 +1,13 @@
+# DELIBERATELY INSECURE. DO NOT COPY THIS TEMPLATE.
+#
+# This file is training material for a security exercise: the misconfigurations below are the
+# point of it, and the exercises in ../README.md attack them. Nothing here has been hardened.
+# See the caution block at the top of ../README.md.
+#
+# Specifically: no BucketEncryption, no PublicAccessBlockConfiguration and no
+# VersioningConfiguration on any of the three buckets, one of which is named
+# `secret-recipes` and receives a file classified as confidential.
+#
 Description:  This template deploys an S3 bucket for storage of recipes.
 
 Resources:

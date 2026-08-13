@@ -1,3 +1,14 @@
+# DELIBERATELY INSECURE. DO NOT COPY THIS TEMPLATE.
+#
+# This file is training material for a security exercise: the misconfigurations below are the
+# point of it, and the exercises in ../README.md attack them. Nothing here has been hardened.
+# See the caution block at the top of ../README.md.
+#
+# Specifically: WebAppSG allows every protocol INBOUND from 0.0.0.0/0, plus SSH on 22 open to
+# the internet, which is what the brute-force exercise targets, plus 5000 and 80. Three further
+# `IpProtocol: -1` rules here are egress, which is the default for any security group and is not
+# an exposure; they are noted only so the ingress one is not lost among them.
+#
 Description:  This template deploys ec2 instances for the project starter
 
 Parameters:

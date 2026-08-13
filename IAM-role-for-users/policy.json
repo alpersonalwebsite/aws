@@ -1,8 +1,10 @@
 {
   "Version": "2012-10-17",
-  "Statement": {
-    "Effect": "Allow",
-    "Action": "sts:AssumeRole",
-    "Resource": "arn:aws:iam::your-account-id:role/test-user-role"
-  }
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": "arn:aws:iam::YOUR-ACCOUNT-ID:role/test-user-role"
+    }
+  ]
 }

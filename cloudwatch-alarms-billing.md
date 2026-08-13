@@ -72,15 +72,15 @@ cloudwatch-alarms-billing-SNSCreateAndManageTopics.json
 ## Add policies to group
 
 ```shell
-aws iam attach-group-policy --policy-arn arn:aws:iam::your-admin-account-id:policy/CloudWatchMetricsPolicyForBilling --group-name Reviewers
+aws iam attach-group-policy --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/CloudWatchMetricsPolicyForBilling --group-name Reviewers
 
-aws iam attach-group-policy --policy-arn arn:aws:iam::your-admin-account-id:policy/SNSCreateAndManageTopics --group-name Reviewers
+aws iam attach-group-policy --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/SNSCreateAndManageTopics --group-name Reviewers
 ```
 
 If we need to make a change in the policies, we have to create a new version (up to 5)
 Example:
 ```shell
-aws iam create-policy-version --policy-arn arn:aws:iam::your-admin-account-id:policy/CloudWatchMetricsPolicyForBilling --policy-document file://cloudwatch-alarms-billing-CloudWatchMetricsPolicyForBilling.json --set-as-default
+aws iam create-policy-version --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/CloudWatchMetricsPolicyForBilling --policy-document file://cloudwatch-alarms-billing-CloudWatchMetricsPolicyForBilling.json --set-as-default
 ```
 
 ## Create users and provide proper access
@@ -112,14 +112,14 @@ This will return our topic's ARN:
 
 ```shell
 {
-    "TopicArn": "arn:aws:sns:us-east-1:your-admin-account-id:billing-alarm-topic"
+    "TopicArn": "arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-alarm-topic"
 }
 ```
 
 ### Subscribe to that topic
 
 ```shell
-aws sns subscribe --topic-arn arn:aws:sns:us-east-1:your-admin-account-id:billing-alarm-topic \
+aws sns subscribe --topic-arn arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-alarm-topic \
   --protocol email \
   --notification-endpoint your-email@email.com
 ```
@@ -140,14 +140,14 @@ Alternatively, you can check with the cli the current status of your subscriptio
 
 ```shell
 aws sns list-subscriptions-by-topic \
-  --topic-arn arn:aws:sns:us-east-1:your-admin-account-id:billing-alarm-topic
+  --topic-arn arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-alarm-topic
 ```
 
 To be sure everything is working as expected we can publish a message to that topic.
 
 ```shell
 aws sns publish --message "Testing" \
-  --topic arn:aws:sns:us-east-1:your-admin-account-id:billing-alarm-topic
+  --topic arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-alarm-topic
 ```
 
 You should receive an email like this:
@@ -174,6 +174,6 @@ aws cloudwatch put-metric-alarm --alarm-name aws-billing-alarm \
   --period 21600 \
   --evaluation-periods 1 \
   --treat-missing-data missing \
-  --alarm-actions arn:aws:sns:us-east-1:your-admin-account-id:billing-alarm-topic \
+  --alarm-actions arn:aws:sns:us-east-1:YOUR-ACCOUNT-ID:billing-alarm-topic \
   --dimensions "Name=Currency,Value=USD"
 ```

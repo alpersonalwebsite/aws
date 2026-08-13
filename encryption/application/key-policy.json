@@ -6,7 +6,7 @@
       "Sid": "Allow access for Key Administrators",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::your-aws-account-id:user/your-user"
+        "AWS": "arn:aws:iam::YOUR-ACCOUNT-ID:user/your-user"
       },
       "Action": [
         "kms:Create*",
@@ -31,9 +31,9 @@
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::your-aws-account-id:user/your-user",
-          "arn:aws:iam::your-aws-account-id:role/encryption-lambda-write",
-          "arn:aws:iam::your-aws-account-id:role/encryption-lambda-read"
+          "arn:aws:iam::YOUR-ACCOUNT-ID:user/your-user",
+          "arn:aws:iam::YOUR-ACCOUNT-ID:role/encryption-lambda-write",
+          "arn:aws:iam::YOUR-ACCOUNT-ID:role/encryption-lambda-read"
         ]
       },
       "Action": [
@@ -49,7 +49,7 @@
       "Sid": "Allow attachment of persistent resources",
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::your-aws-account-id:user/your-user"
+        "AWS": "arn:aws:iam::YOUR-ACCOUNT-ID:user/your-user"
       },
       "Action": [
         "kms:CreateGrant",

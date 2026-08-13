@@ -14,7 +14,7 @@ Example output:
         "Path": "/", 
         "CreateDate": "2020-06-22T16:42:13Z", 
         "UserId": "***", 
-        "Arn": "arn:aws:iam::your-aws-account-id:user/test-us-1"
+        "Arn": "arn:aws:iam::YOUR-ACCOUNT-ID:user/test-us-1"
     }
 }
 ```
@@ -29,7 +29,7 @@ Example output:
 ```json
 {
     "VirtualMFADevice": {
-        "SerialNumber": "arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa"
+        "SerialNumber": "arn:aws:iam::YOUR-ACCOUNT-ID:mfa/test-us-1-virtual-mfa"
     }
 }
 ```
@@ -41,7 +41,7 @@ First, open your `Authenticator`, for example: `Google Authenticator` and scan t
 Then, add 2 codes...
 
 ```shell
-aws iam enable-mfa-device --user-name test-us-1 --serial-number arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa --authentication-code-1 360431 --authentication-code-2 874344
+aws iam enable-mfa-device --user-name test-us-1 --serial-number arn:aws:iam::YOUR-ACCOUNT-ID:mfa/test-us-1-virtual-mfa --authentication-code-1 360431 --authentication-code-2 874344
 ```
 
 Then, we are going to list all MFA devices for our user and ensure 
@@ -56,7 +56,7 @@ We should see something like:
     "MFADevices": [
         {
             "UserName": "test-us-1", 
-            "SerialNumber": "arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa", 
+            "SerialNumber": "arn:aws:iam::YOUR-ACCOUNT-ID:mfa/test-us-1-virtual-mfa", 
             "EnableDate": "2020-06-22T17:05:12Z"
         }
     ]
@@ -131,8 +131,8 @@ List all object inside a bucket `aws s3api list-objects --bucket your-bucket --q
 
 Now, if we try: `aws iam list-users` we should see...
 
-```shell
-An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:iam::your-aws-account-id:user/test-us-1 is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::your-aws-account-id:user/
+```text
+An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:iam::YOUR-ACCOUNT-ID:user/test-us-1 is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::YOUR-ACCOUNT-ID:user/
 ```
 
 ## Option 2: Create a role the user can utilize
@@ -156,7 +156,7 @@ Result:
         "PolicyId": "***", 
         "DefaultVersionId": "v1", 
         "Path": "/", 
-        "Arn": "arn:aws:iam::your-aws-account-id:policy/test-user-policy", 
+        "Arn": "arn:aws:iam::YOUR-ACCOUNT-ID:policy/test-user-policy", 
         "UpdateDate": "2020-06-22T18:09:45Z"
     }
 }
@@ -180,7 +180,7 @@ In our case, we expect the following response
 Let's assign the policy `test-user-policy` that we created in the previous step.
 
 ```shell
-aws iam attach-user-policy --policy-arn arn:aws:iam::your-aws-account-id:policy/test-user-policy --user-name test-us-1
+aws iam attach-user-policy --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/test-user-policy --user-name test-us-1
 ```
 
 And... Ensure the user now has the proper policy
@@ -196,7 +196,7 @@ Result:
     "AttachedPolicies": [
         {
             "PolicyName": "test-user-policy", 
-            "PolicyArn": "arn:aws:iam::your-aws-account-id:policy/test-user-policy"
+            "PolicyArn": "arn:aws:iam::YOUR-ACCOUNT-ID:policy/test-user-policy"
         }
     ]
 }
@@ -221,7 +221,7 @@ Result:
                 "Action": "sts:AssumeRole", 
                 "Effect": "Allow", 
                 "Principal": {
-                    "AWS": "arn:aws:iam::your-aws-account-id:user/test-us-1"
+                    "AWS": "arn:aws:iam::YOUR-ACCOUNT-ID:user/test-us-1"
                 }
             }
         }, 
@@ -229,12 +229,12 @@ Result:
         "CreateDate": "2020-06-22T20:48:08Z", 
         "RoleName": "test-user-role", 
         "Path": "/", 
-        "Arn": "arn:aws:iam::your-aws-account-id:role/test-user-role"
+        "Arn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/test-user-role"
     }
 }
 ```
 
-Until now, the user has only permissions to assume the role `test-user-role` in a particular account `your-aws-account-id`
+Until now, the user has only permissions to assume the role `test-user-role` in a particular account `YOUR-ACCOUNT-ID`
 
 4. Attach policy to role
 
@@ -249,7 +249,7 @@ You should see...
 **Trusted entities**
 The following trusted entities can assume this role.
 Trusted entities
-The account `your-aws-account-id`
+The account `YOUR-ACCOUNT-ID`
 
 **Conditions**
 The following conditions define how and when trusted entities can assume the role.
@@ -300,13 +300,13 @@ aws iam delete-role --role-name test-user-role
 
 First we need to detach the policy from the user entity.
 ```shell
-aws iam detach-user-policy --user-name test-us-1 --policy-arn arn:aws:iam::your-aws-account-id:policy/test-user-policy
+aws iam detach-user-policy --user-name test-us-1 --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/test-user-policy
 ```
 
 Then,
 
 ```shell
-aws iam delete-policy --policy-arn arn:aws:iam::your-aws-account-id:policy/test-user-policy  
+aws iam delete-policy --policy-arn arn:aws:iam::YOUR-ACCOUNT-ID:policy/test-user-policy  
 ```
 
 ## For both (Option 1 and Option 2)
@@ -317,9 +317,9 @@ aws iam delete-policy --policy-arn arn:aws:iam::your-aws-account-id:policy/test-
 First we need to deactivate, then delete.
 
 ```shell
-aws iam deactivate-mfa-device --user-name test-us-1 --serial-number arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa
+aws iam deactivate-mfa-device --user-name test-us-1 --serial-number arn:aws:iam::YOUR-ACCOUNT-ID:mfa/test-us-1-virtual-mfa
 
-aws iam delete-virtual-mfa-device --serial-number arn:aws:iam::your-aws-account-id:mfa/test-us-1-virtual-mfa
+aws iam delete-virtual-mfa-device --serial-number arn:aws:iam::YOUR-ACCOUNT-ID:mfa/test-us-1-virtual-mfa
 ```
 
 2. Delete user access keys

@@ -1,5 +1,25 @@
 # Security
 
+> [!CAUTION]
+> **The infrastructure in this directory is deliberately insecure. Do not copy it.**
+>
+> This is a security training project: the templates exist so that the exercises can attack
+> them. `infrastructure/app.yml` opens all protocols inbound from `0.0.0.0/0` on the application
+> instance, plus SSH on 22, and ports 5000 and 80, all to the entire internet. (Four rules match
+> `IpProtocol: -1` with `0.0.0.0/0`, but only one is ingress; the other three are egress, which is
+> every security group's default and not an exposure.) `infrastructure/s3.yml` creates three
+> buckets, one of them named `secret-recipes`, with no encryption at rest, no public-access
+> block and no versioning.
+>
+> None of that is an oversight and none of it has been fixed here, because the vulnerabilities
+> are the teaching material. The hardening exercise below deliberately fixes SSH inside
+> `sshd_config` on the running instance rather than in the template, so the template stays
+> vulnerable on purpose.
+>
+> If you have arrived here looking for a reference CloudFormation template, this is the
+> opposite of one.
+
+
 ## Deploying Infrastructure 
 
 ### S3 buckets
@@ -9,9 +29,9 @@ aws cloudformation create-stack --region us-east-1 --stack-name s3 --template-bo
 ```
 
 *S3 created...*
-S3BucketRecipesFree > cand-c3-free-recipes-your-aws-account-id
-S3BucketRecipesSecret > cand-c3-secret-recipes-your-aws-account-id
-S3BucketVPCFlowLogs > arn:aws:s3:::cand-c3-vpc-flow-logs-your-aws-account-id
+S3BucketRecipesFree > cand-c3-free-recipes-YOUR-ACCOUNT-ID
+S3BucketRecipesSecret > cand-c3-secret-recipes-YOUR-ACCOUNT-ID
+S3BucketVPCFlowLogs > arn:aws:s3:::cand-c3-vpc-flow-logs-YOUR-ACCOUNT-ID
 
 ### VPC and Subnets
 
@@ -34,9 +54,9 @@ You will need the public IP address of the attack instance from which to run the
 ## Upload data to S3 buckets 
 
 ```shell
-aws s3 cp resources/recipes/free_recipe.txt s3://cand-c3-free-recipes-your-aws-account-id/ --region us-east-1
+aws s3 cp resources/recipes/free_recipe.txt s3://cand-c3-free-recipes-YOUR-ACCOUNT-ID/ --region us-east-1
 
-aws s3 cp resources/recipes/secret_recipe.txt s3://cand-c3-secret-recipes-your-aws-account-id/ --region us-east-1
+aws s3 cp resources/recipes/secret_recipe.txt s3://cand-c3-secret-recipes-YOUR-ACCOUNT-ID/ --region us-east-1
 ```
 
 ## Test application
@@ -110,9 +130,9 @@ hydra -l ubuntu -P rockyou.txt ssh://ec2-23-23-34-174.compute-1.amazonaws.com
 Note: Still from the Attack instance
 
 ```shell
-aws s3 ls  s3://cand-c3-secret-recipes-your-aws-account-id/ --region us-east-1
+aws s3 ls  s3://cand-c3-secret-recipes-YOUR-ACCOUNT-ID/ --region us-east-1
 
-aws s3 cp s3://cand-c3-secret-recipes-your-aws-account-id/secret_recipe.txt  .  --region us-east-1
+aws s3 cp s3://cand-c3-secret-recipes-YOUR-ACCOUNT-ID/secret_recipe.txt  .  --region us-east-1
 
 cat secret_recipe.txt
 ```
@@ -210,7 +230,7 @@ hydra -l ubuntu -P rockyou.txt ssh://ec2-23-23-34-174.compute-1.amazonaws.com
 ```
 
 Expected output:
-```shell
+```text
 Hydra v8.6 (c) 2017 by van Hauser/THC - Please do not use in military or secret service organizations, or for illegal purposes.
 
 Hydra (http://www.thc.org/thc-hydra) starting at 2020-07-03 01:00:21
@@ -281,7 +301,7 @@ NEW policy:
     "Statement": [
         {
             "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::cand-c3-free-recipes-your-aws-account-id/*",
+            "Resource": "arn:aws:s3:::cand-c3-free-recipes-YOUR-ACCOUNT-ID/*",
             "Effect": "Allow"
         }
     ]
@@ -301,13 +321,13 @@ ssh -i YourServiceClientKP.pem ubuntu@ec2-54-152-203-174.compute-1.amazonaws.com
 
 
 ```shell
-aws s3 ls  s3://cand-c3-secret-recipes-your-aws-account-id/ --region us-east-1
+aws s3 ls  s3://cand-c3-secret-recipes-YOUR-ACCOUNT-ID/ --region us-east-1
 
-aws s3 cp s3://cand-c3-secret-recipes-your-aws-account-id/secret_recipe.txt  .  --region us-east-1
+aws s3 cp s3://cand-c3-secret-recipes-YOUR-ACCOUNT-ID/secret_recipe.txt  .  --region us-east-1
 ```
 
 Expected output:
-```shell
+```text
 An error occurred (AccessDenied) when calling the ListObjects operation: Access Denied
 
 fatal error: An error occurred (403) when calling the HeadObject operation: Forbidden
@@ -317,7 +337,7 @@ fatal error: An error occurred (403) when calling the HeadObject operation: Forb
 
 ```shell
 aws s3api put-bucket-encryption \
-    --bucket cand-c3-secret-recipes-your-aws-account-id \
+    --bucket cand-c3-secret-recipes-YOUR-ACCOUNT-ID \
     --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
 ```
 
