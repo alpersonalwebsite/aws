@@ -31,7 +31,7 @@ Example output:
         "CreateDate": "2020-06-29T21:19:00Z", 
         "RoleName": "encryption-lambda-read", 
         "Path": "/", 
-        "Arn": "arn:aws:iam::your-aws-account-id:role/encryption-lambda-read"
+        "Arn": "arn:aws:iam::YOUR-ACCOUNT-ID:role/encryption-lambda-read"
     }
 }
 
@@ -64,7 +64,7 @@ Example output:
 {
     "KeyMetadata": {
         "Origin": "AWS_KMS", 
-        "KeyId": "c556d894-361e-437a-8890-e70fa95a835c", 
+        "KeyId": "YOUR-KMS-KEY-ID", 
         "Description": "Development test key", 
         "KeyManager": "CUSTOMER", 
         "EncryptionAlgorithms": [
@@ -75,8 +75,8 @@ Example output:
         "KeyUsage": "ENCRYPT_DECRYPT", 
         "KeyState": "Enabled", 
         "CreationDate": 1593465813.221, 
-        "Arn": "arn:aws:kms:us-east-1:your-aws-account-id:key/c556d894-361e-437a-8890-e70fa95a835c", 
-        "AWSAccountId": "your-aws-account-id"
+        "Arn": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID", 
+        "AWSAccountId": "YOUR-ACCOUNT-ID"
     }
 }
 ```
@@ -88,7 +88,7 @@ Example output:
 ```shell
 aws kms create-alias \
     --alias-name alias/encryption-test \
-    --target-key-id c556d894-361e-437a-8890-e70fa95a835c
+    --target-key-id YOUR-KMS-KEY-ID
 ```
 
 ## Change key policy
@@ -96,21 +96,21 @@ aws kms create-alias \
 ```shell
 aws kms put-key-policy \
     --policy-name default \
-    --key-id c556d894-361e-437a-8890-e70fa95a835c \
+    --key-id YOUR-KMS-KEY-ID \
     --policy file://key-policy.json
 ```
 
 ## Create S3 bucket with server-side encryption enabled
 
 ```shell
-aws s3api create-bucket --bucket my-bucket-8200334565 --region us-east-1
+aws s3api create-bucket --bucket YOUR-BUCKET-NAME --region us-east-1
 ```
 
 Example output:
 
 ```shell
 {
-    "Location": "/my-bucket-8200334565"
+    "Location": "/YOUR-BUCKET-NAME"
 }
 ```
 
@@ -118,7 +118,7 @@ Example output:
 
 ```shell
 aws s3api put-bucket-encryption \
-    --bucket my-bucket-8200334565 \
+    --bucket YOUR-BUCKET-NAME \
     --server-side-encryption-configuration '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "AES256"}}]}'
 ```
 
@@ -126,7 +126,7 @@ We can check the server-side encryption configuration...
 
 ```shell
 aws s3api get-bucket-encryption \
-    --bucket my-bucket-8200334565
+    --bucket YOUR-BUCKET-NAME
 ```
 
 Example output:
@@ -156,7 +156,7 @@ aws lambda create-function \
     --runtime nodejs12.x \
     --zip-file fileb://encryption-lambda-write.zip \
     --handler encryption-lambda-write.handler \
-    --role arn:aws:iam::your-aws-account-id:role/encryption-lambda-write
+    --role arn:aws:iam::YOUR-ACCOUNT-ID:role/encryption-lambda-write
 
 ```
 
@@ -174,7 +174,7 @@ aws lambda create-function \
     --runtime nodejs12.x \
     --zip-file fileb://encryption-lambda-read.zip \
     --handler encryption-lambda-read.handler \
-    --role arn:aws:iam::your-aws-account-id:role/encryption-lambda-read
+    --role arn:aws:iam::YOUR-ACCOUNT-ID:role/encryption-lambda-read
 ```
 
 Then, zip your lambda:
@@ -219,21 +219,21 @@ Note: We are going to use the smallest window period, 7 days.
 
 ```shell
 aws kms schedule-key-deletion \
-    --key-id arn:aws:kms:us-east-1:your-aws-account-id:key/c556d894-361e-437a-8890-e70fa95a835c \
+    --key-id arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID \
     --pending-window-in-days 7
 ```
 
 ### Delete S3 bucket
 
 ```shell
-aws s3 rb --force s3://my-bucket-8200334565
+aws s3 rb --force s3://YOUR-BUCKET-NAME
 ```
 
 Example output:
 
 ```shell
-delete: s3://my-bucket-8200334565/hello-world.txt
-remove_bucket: my-bucket-8200334565
+delete: s3://YOUR-BUCKET-NAME/hello-world.txt
+remove_bucket: YOUR-BUCKET-NAME
 ```
 
 ### Delete Lambdas
