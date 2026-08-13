@@ -1,3 +1,11 @@
+# DELIBERATELY INSECURE. DO NOT COPY THIS TEMPLATE.
+#
+# This file is training material for a security exercise: the misconfigurations below are the
+# point of it, and the exercises in ../README.md attack them. Nothing here has been hardened.
+# See the caution block at the top of ../README.md.
+#
+# Part of the same deliberately vulnerable stack.
+#
 Description:  This template deploys a VPC, with a pair of public and private subnets spread
   across two Availability Zones. It deploys an internet gateway, with a default
   route on the public subnets. It deploys a pair of NAT gateways (one in each AZ),

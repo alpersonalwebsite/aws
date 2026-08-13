@@ -1,3 +1,13 @@
+# DELIBERATELY INSECURE. DO NOT COPY THIS TEMPLATE.
+#
+# This file is training material for a security exercise: the misconfigurations below are the
+# point of it, and the exercises in ../README.md attack them. Nothing here has been hardened.
+# See the caution block at the top of ../README.md.
+#
+# Specifically: two `IpProtocol: -1` rules from 0.0.0.0/0, which allow every protocol from
+# anywhere, plus SSH on 22 open to the internet, which is what the brute-force exercise
+# targets, plus 5000 and 80.
+#
 Description:  This template deploys ec2 instances for the project starter
 
 Parameters:
