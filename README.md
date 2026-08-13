@@ -16,10 +16,13 @@ documents beside them.
 
 ## ⚠️ `security/` is deliberately insecure
 
-That directory is training material. `security/infrastructure/app.yml` opens `IpProtocol: -1`
-from `0.0.0.0/0` twice, plus SSH on 22, and ports 5000 and 80, all to the internet.
-`security/infrastructure/s3.yml` creates three buckets, one named `secret-recipes`, with no
-encryption at rest, no public-access block and no versioning.
+That directory is training material. `security/infrastructure/app.yml` opens **all protocols
+inbound from `0.0.0.0/0`** on the application instance, plus SSH on 22 and ports 5000 and 80, all
+to the internet. `security/infrastructure/s3.yml` creates three buckets, one named
+`secret-recipes`, with no encryption at rest, no public-access block and no versioning.
+
+Four rules in that file match `IpProtocol: -1` with `0.0.0.0/0`, but only one is ingress. The
+other three are egress, which is the default for every security group and is not an exposure.
 
 **None of that has been fixed, on purpose.** The vulnerabilities are what the exercises attack,
 and the hardening exercise deliberately fixes SSH inside `sshd_config` on the running instance
@@ -93,10 +96,14 @@ Resource: arn:aws:ssm:*:*:session/${aws:username}-*
 reach IAM as a literal. Wrapping it in `!Sub` makes CloudFormation try to resolve it: verified
 with `cfn-lint`, which reports `E1019 'aws:username' is not one of [...]`.
 
-**Placeholders were spelled four different ways** — `your-aws-account-id`, `your-account-id`,
-`your-admin-account-id` — alongside a concrete bucket name and a real KMS key id that read as
-placeholders but were not. All now `YOUR-ACCOUNT-ID`, `YOUR-BUCKET-NAME` and `YOUR-KMS-KEY-ID`.
-The exercise answers under `security/txt/` are left exactly as written.
+**Placeholders were spelled three different ways** — `your-aws-account-id` (54 occurrences),
+`your-admin-account-id` (11) and `your-account-id` (1) — alongside a concrete bucket name and two
+real KMS key ids that read as placeholders but were not. All now `YOUR-ACCOUNT-ID`,
+`YOUR-BUCKET-NAME` and `YOUR-KMS-KEY-ID`. The exercise answers under `security/txt/` are left
+exactly as written, being the author's own work.
+
+Recorded command output keeps its original identifiers on purpose, such as the load-balancer
+hostname in `security/README.md`, so those are a stated exception rather than a miss.
 
 **`validate-policies.py`** checks every `*.json` policy in the repository against the IAM
 grammar, which is a *closed* set of keys: a stray element is rejected with

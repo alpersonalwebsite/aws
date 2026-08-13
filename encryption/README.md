@@ -19,7 +19,7 @@ Example output:
 {
   "KeyMetadata": {
     "Origin": "AWS_KMS",
-    "KeyId": "c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d",
+    "KeyId": "YOUR-KMS-KEY-ID",
     "Description": "Development test key",
     "KeyManager": "CUSTOMER",
     "EncryptionAlgorithms": ["SYMMETRIC_DEFAULT"],
@@ -28,7 +28,7 @@ Example output:
     "KeyUsage": "ENCRYPT_DECRYPT",
     "KeyState": "Enabled",
     "CreationDate": 1593389383.576,
-    "Arn": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d",
+    "Arn": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID",
     "AWSAccountId": "YOUR-ACCOUNT-ID"
   }
 }
@@ -39,7 +39,7 @@ Example output:
 ```shell
 aws kms put-key-policy \
     --policy-name default \
-    --key-id c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d \
+    --key-id YOUR-KMS-KEY-ID \
     --policy file://key-policy.json
 ```
 
@@ -95,7 +95,7 @@ Example output:
 _Hint_: we are using server-side encryption with KMS, specifying a KMS customer master key (CMK)
 
 ```shell
-aws s3 cp hello-world.txt s3://YOUR-BUCKET-NAME/ --sse aws:kms --sse-kms-key-id c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d
+aws s3 cp hello-world.txt s3://YOUR-BUCKET-NAME/ --sse aws:kms --sse-kms-key-id YOUR-KMS-KEY-ID
 ```
 
 Example output:
@@ -120,12 +120,12 @@ Example output:
   "ContentLength": 12,
   "ETag": "\"5c962486475d8e4ac65d9495274b1a9d\"",
   "ServerSideEncryption": "aws:kms",
-  "SSEKMSKeyId": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d",
+  "SSEKMSKeyId": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID",
   "Metadata": {}
 }
 ```
 
-Great! We can see that Server Side Encryption is using `aws:kms` with the key that we provided: `arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d`
+Great! We can see that Server Side Encryption is using `aws:kms` with the key that we provided: `arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID`
 
 **With this, only AWS users/roles that have permissions to use this KMS key will be able to read the object from S3.**
 
@@ -184,7 +184,7 @@ Note: We are going to use the smallest window period, 7 days.
 
 ```shell
 aws kms schedule-key-deletion \
-    --key-id arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d \
+    --key-id arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID \
     --pending-window-in-days 7
 ```
 
@@ -192,7 +192,7 @@ Example output:
 
 ```json
 {
-  "KeyId": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/c9bd0eb7-cfe7-4e88-ad8d-12d130ce199d",
+  "KeyId": "arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID",
   "DeletionDate": 1594080000.0
 }
 ```

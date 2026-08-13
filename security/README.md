@@ -4,8 +4,10 @@
 > **The infrastructure in this directory is deliberately insecure. Do not copy it.**
 >
 > This is a security training project: the templates exist so that the exercises can attack
-> them. `infrastructure/app.yml` opens `IpProtocol: -1` from `0.0.0.0/0` twice, plus SSH on 22,
-> and ports 5000 and 80, all to the entire internet. `infrastructure/s3.yml` creates three
+> them. `infrastructure/app.yml` opens all protocols inbound from `0.0.0.0/0` on the application
+> instance, plus SSH on 22, and ports 5000 and 80, all to the entire internet. (Four rules match
+> `IpProtocol: -1` with `0.0.0.0/0`, but only one is ingress; the other three are egress, which is
+> every security group's default and not an exposure.) `infrastructure/s3.yml` creates three
 > buckets, one of them named `secret-recipes`, with no encryption at rest, no public-access
 > block and no versioning.
 >
