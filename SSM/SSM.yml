@@ -9,13 +9,16 @@ Parameters:
     # only valid in the region it was published in, and Amazon deregisters old ones, so the
     # template failed outside us-east-1 and eventually failed there too.
     #
-    # Amazon Linux 2 specifically, inferred rather than known: the original AMI id cannot be
-    # resolved any more, but this template has no UserData installing the SSM agent, so the
-    # image it used must have shipped the agent preinstalled. Amazon Linux 2 does. If the
-    # original was Ubuntu, change the parameter path and nothing else.
+    # Amazon Linux 2023, NOT Amazon Linux 2. AL2 reached end of support on 2026-06-30, so it
+    # no longer receives security updates and defaulting to it would ship an unsupported OS.
+    # AL2023 also has the SSM agent preinstalled, which is what this template relies on.
+    #
+    # The original AMI id cannot be resolved any more, so which distribution it was is an
+    # inference rather than a fact: this template installs no SSM agent via UserData, so the
+    # image must have shipped one. Override the parameter if you need a different family.
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
-    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
-    Description: SSM public parameter resolving to the latest Amazon Linux 2 AMI.
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+    Description: SSM public parameter resolving to the latest Amazon Linux 2023 AMI.
 
   VpcId:
     # Required, rather than relying on the default VPC. The security group below had no VpcId,
@@ -112,37 +115,58 @@ Resources:
               # already applies, so this repository was inconsistent with itself.
               Bool:
                 aws:MultiFactorAuthPresent: 'true'
-      ManagedPolicyArns:
-        # AmazonEC2ReadOnlyAccess was attached and is broader than this role needs: it grants
-        # read access to every EC2 resource in the account. The role only has to find the one
-        # instance it will connect to, which the inline policy below covers, so it is dropped.
-        - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
+      # No ManagedPolicyArns at all. Two were attached and both were wider than this role
+      # needs. AmazonEC2ReadOnlyAccess grants read on every EC2 resource in the account.
+      # AmazonSSMReadOnlyAccess grants ssm:Describe*, ssm:Get* and ssm:List* on every Systems
+      # Manager resource, so it could enumerate and read unrelated account-wide SSM data
+      # including parameters. Everything this workflow needs is enumerated inline below.
       Path: /
       Policies:
         - PolicyName: SessionManagerAccess
           PolicyDocument:
             Version: 2012-10-17
             Statement:
+              # StartSession needs BOTH the instance and the session document. Granting only
+              # the instance makes `aws ssm start-session` fail, because Session Manager reads
+              # its configuration from SSM-SessionManagerRunShell. Per AWS's own sample end-user
+              # policy, both ARNs belong in the same statement.
               - Effect: Allow
                 Action: ssm:StartSession
-                Resource: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2Instance}
+                Resource:
+                  - !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2Instance}
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:document/SSM-SessionManagerRunShell
+              # ssmmessages:OpenDataChannel is a USER permission, not only an instance one. The
+              # instance side comes from AmazonSSMManagedInstanceCore on EC2InstanceRole; the
+              # caller needs this to carry the session's data channel.
+              - Effect: Allow
+                Action: ssmmessages:OpenDataChannel
+                Resource: arn:aws:ssm:*:*:session/${aws:userid}-*
               - Effect: Allow
                 Action:
                   - ssm:TerminateSession
                   - ssm:ResumeSession
-                # NOT wrapped in !Sub, deliberately. `${aws:username}` is an IAM policy
-                # variable that IAM expands at evaluation time, so it has to reach IAM as a
-                # literal. Adding !Sub here makes CloudFormation try to resolve it and fail the
-                # stack with "variable aws:username not found".
-                Resource: arn:aws:ssm:*:*:session/${aws:username}-*
+                # ${aws:userid}, NOT ${aws:username}. Per the IAM condition-key reference,
+                # aws:username is "always included in the request context for IAM users" while
+                # "requests that are made using ... IAM roles do not include this key". This
+                # role exists to be ASSUMED, so aws:username is never present and the ARN could
+                # never match: terminate and resume would always be denied. aws:userid is
+                # present for role sessions, and it is what AWS's current samples use.
+                #
+                # Still NOT wrapped in !Sub, for the original reason: this is an IAM policy
+                # variable that IAM expands at evaluation time, so it must reach IAM as a
+                # literal. cfn-lint rejects the !Sub form with
+                # E1019 'aws:userid' is not one of [...].
+                Resource: arn:aws:ssm:*:*:session/${aws:userid}-*
               - Effect: Allow
                 Action:
                   - ec2:DescribeInstances
                   - ssm:DescribeInstanceInformation
+                  - ssm:DescribeInstanceProperties
                   - ssm:DescribeSessions
                   - ssm:GetConnectionStatus
-                # These four are not resource-scopable: AWS defines them without a resource
-                # type, so a narrower ARN would deny rather than restrict. They are read-only.
+                # Not resource-scopable: AWS defines these without a resource type, so a
+                # narrower ARN would deny rather than restrict. All read-only, and they replace
+                # the two managed policies that were attached instead.
                 Resource: '*'
 
 Outputs:
@@ -151,7 +175,9 @@ Outputs:
     Description: Instance to connect to with `aws ssm start-session --target <id>`.
   LoginRoleArn:
     Value: !GetAtt IAMroleToLoginIntoInstance.Arn
-    Description: Role to assume in order to start a session. Requires MFA.
+    Description: >
+      Role to assume in order to start a session. Requires MFA. Use THIS arn in the console
+      role-switch link and in your AWS profile: the role name is generated, not fixed.
   ResolvedAmiId:
     Value: !Ref LatestAmiId
     Description: The AMI the SSM parameter resolved to at deploy time.

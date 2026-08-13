@@ -125,7 +125,7 @@ Example output:
 }
 ```
 
-Great! We can see that Server Side Encryption is using `aws:kms` with the key that we provided: `arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID`
+Great! We can see that server-side encryption is using `aws:kms` with the key that we provided: `arn:aws:kms:us-east-1:YOUR-ACCOUNT-ID:key/YOUR-KMS-KEY-ID`
 
 **With this, only AWS users/roles that have permissions to use this KMS key will be able to read the object from S3.**
 

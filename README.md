@@ -72,9 +72,11 @@ have deleted any topic in the account.
 - `ImageId: ami-0323c3dd2da7fb37d` was hardcoded. An AMI id is valid only in the region that
   published it and Amazon deregisters old ones, so the template failed outside `us-east-1` and
   eventually failed there too. It now takes the public SSM parameter
-  `/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2`. Amazon Linux 2 is an inference
-  rather than a certainty: the original id cannot be resolved any more, but the template installs
-  no SSM agent, so the image it used must have shipped one.
+  `/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64`. **Amazon Linux 2023,
+  not 2** — AL2 reached end of support on 2026-06-30, so defaulting to it would ship an OS that
+  no longer receives security updates. Which family the original used is an inference rather than
+  a fact: the id cannot be resolved any more, but the template installs no SSM agent, so its image
+  must have shipped one, as both AL2 and AL2023 do.
 - `RoleName` was hardcoded twice, which makes the stack undeployable a second time and collides
   with anything else using those names. Both are omitted so CloudFormation generates them.
 - The security group had no `VpcId`, so it landed in the default VPC and the stack failed
@@ -83,8 +85,30 @@ have deleted any topic in the account.
   requires MFA, which is the same condition the sibling `IAM-role-for-users/test-trust-policy.json`
   already applied, so the repository had been inconsistent with itself.
 
-`AmazonEC2ReadOnlyAccess` is also dropped from that role: it grants read access to every EC2
-resource in the account, and the role only needs to find the one instance it connects to.
+**Both managed policies are dropped from that role**, and the second one mattered as much as the
+first. `AmazonEC2ReadOnlyAccess` grants read on every EC2 resource in the account.
+`AmazonSSMReadOnlyAccess` grants `ssm:Describe*`, `ssm:Get*` and `ssm:List*` on every Systems
+Manager resource, which includes reading unrelated Parameter Store values. Everything the workflow
+needs is enumerated in one inline policy instead, and `SSM/README.md` tabulates it.
+
+**The session policy was also incomplete, so the documented command would have failed.** Checked
+against AWS's own sample end-user policy for Session Manager:
+
+- `ssm:StartSession` needs the **document** `SSM-SessionManagerRunShell` as well as the instance.
+  With only the instance ARN, `aws ssm start-session` fails, because Session Manager reads its
+  configuration from that document.
+- `ssmmessages:OpenDataChannel` is a **user** permission, not only an instance one. The instance
+  side comes from `AmazonSSMManagedInstanceCore`; the caller needs this for the data channel.
+- The session ARN used `${aws:username}`, which **can never match here**. Per the IAM
+  condition-key reference, `aws:username` is "always included in the request context for IAM
+  users" while "requests that are made using ... IAM roles do not include this key". This role
+  exists to be assumed, so terminate and resume would always have been denied. It is
+  `${aws:userid}` now, which is what AWS's current samples use.
+
+That last one is worth being blunt about: the previous revision of this README defended the
+`${aws:username}` line at length, verified carefully that it must not be wrapped in `!Sub`, and
+never asked whether the variable was the right one for an assumed role. The `!Sub` reasoning was
+correct and the variable was wrong.
 
 One thing in that file is **deliberately** not a `!Sub`:
 
@@ -107,7 +131,14 @@ hostname in `security/README.md`, so those are a stated exception rather than a 
 
 **`validate-policies.py`** checks every `*.json` policy in the repository against the IAM
 grammar, which is a *closed* set of keys: a stray element is rejected with
-`MalformedPolicyDocument`, so it makes the file unusable rather than untidy.
+`MalformedPolicyDocument`, so it makes the file unusable rather than untidy. It also requires a
+valid `Version`, a non-empty `Statement`, each statement to be an object, `Effect` to be exactly
+`Allow` or `Deny`, exactly one of `Action`/`NotAction`, and a `Resource` on identity policies.
+
+The first version checked only the key names, so it passed `"Effect": "allow"`, an empty
+`Statement: []`, a statement with both `Action` and `NotAction`, and one with neither — and a
+non-object statement crashed it with `AttributeError`, which meant one malformed file hid every
+other file in the run. All seven rules are poison-tested individually.
 
 ```shell
 python3 validate-policies.py
