@@ -1,21 +1,60 @@
-Description: SSM
+Description: >
+  An EC2 instance reachable only through SSM Session Manager, with no inbound rules and no key
+  pair, plus a role that a user can assume in order to start a session on it.
+
+Parameters:
+  LatestAmiId:
+    # A public SSM parameter, not a hardcoded AMI id. The original pinned
+    # ami-0323c3dd2da7fb37d, which is region-specific and was current in June 2020: an AMI id is
+    # only valid in the region it was published in, and Amazon deregisters old ones, so the
+    # template failed outside us-east-1 and eventually failed there too.
+    #
+    # Amazon Linux 2 specifically, inferred rather than known: the original AMI id cannot be
+    # resolved any more, but this template has no UserData installing the SSM agent, so the
+    # image it used must have shipped the agent preinstalled. Amazon Linux 2 does. If the
+    # original was Ubuntu, change the parameter path and nothing else.
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+    Description: SSM public parameter resolving to the latest Amazon Linux 2 AMI.
+
+  VpcId:
+    # Required, rather than relying on the default VPC. The security group below had no VpcId,
+    # so CloudFormation placed it in the default VPC; in an account whose default VPC has been
+    # deleted, which is common in anything hardened, stack creation failed with a message about
+    # the group rather than about the VPC.
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to place the instance and its security group in.
+
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: >
+      Subnet for the instance. It needs a route to the SSM endpoints, so either a public subnet
+      or a private one with a NAT gateway or SSM VPC endpoints.
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    Description: >
+      t3.micro rather than t2.micro. Same 1 GiB, current generation, and t2 is the previous one.
 
 Resources:
   EC2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
+      # No RoleName. The original hardcoded `ec2-instance-role`, and an explicit name makes the
+      # stack undeployable twice and collides with anything else in the account using it.
+      # CloudFormation generates a unique name when it is omitted.
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
             Principal:
               Service:
-              - ec2.amazonaws.com
+                - ec2.amazonaws.com
             Action:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      RoleName: ec2-instance-role
 
   EC2InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -26,18 +65,30 @@ Resources:
 
   EC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupDescription: Security group with no rules
-      GroupName: SSM-Security-group
+    Properties:
+      GroupDescription: >
+        No inbound rules, deliberately. Session Manager works outbound-only, which is the whole
+        point of this template: no port 22 open anywhere and no key pair.
+      # No GroupName either, for the same reason as RoleName.
+      VpcId: !Ref VpcId
+      SecurityGroupEgress:
+        # Made explicit. Omitting egress does not mean "none": CloudFormation applies the
+        # default allow-all rule, so the previous version was permitting all outbound traffic
+        # without saying so. It still is, because the agent needs to reach the SSM endpoints,
+        # but now that is a stated decision rather than a default.
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Outbound to the SSM endpoints. Narrow this to VPC endpoints if required.
 
   EC2Instance:
     Type: AWS::EC2::Instance
-    Properties: 
-      ImageId: ami-0323c3dd2da7fb37d
-      InstanceType: t2.micro
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref EC2InstanceProfile
+      SubnetId: !Ref SubnetId
       SecurityGroupIds:
-        - Ref: EC2SecurityGroup
+        - !Ref EC2SecurityGroup
       Tags:
         - Key: Name
           Value: SSM-EC2
@@ -51,16 +102,24 @@ Resources:
           - Effect: Allow
             Principal:
               AWS:
-              - !Sub arn:aws:iam::${AWS::AccountId}:root
+                - !Sub arn:aws:iam::${AWS::AccountId}:root
             Action:
-              - 'sts:AssumeRole'
+              - sts:AssumeRole
+            Condition:
+              # Added. `Principal: root` trusts EVERY identity in the account, so without a
+              # condition any user or role with sts:AssumeRole could take this role. Requiring
+              # MFA is the same control the sibling IAM-role-for-users/test-trust-policy.json
+              # already applies, so this repository was inconsistent with itself.
+              Bool:
+                aws:MultiFactorAuthPresent: 'true'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess
+        # AmazonEC2ReadOnlyAccess was attached and is broader than this role needs: it grants
+        # read access to every EC2 resource in the account. The role only has to find the one
+        # instance it will connect to, which the inline policy below covers, so it is dropped.
         - arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess
       Path: /
-      RoleName: IAMroleToLoginIntoInstance
       Policies:
-        - PolicyName: IAMroleToLoginIntoInstanceSessionManager
+        - PolicyName: SessionManagerAccess
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -68,5 +127,31 @@ Resources:
                 Action: ssm:StartSession
                 Resource: !Sub arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/${EC2Instance}
               - Effect: Allow
-                Action: ssm:TerminateSession
+                Action:
+                  - ssm:TerminateSession
+                  - ssm:ResumeSession
+                # NOT wrapped in !Sub, deliberately. `${aws:username}` is an IAM policy
+                # variable that IAM expands at evaluation time, so it has to reach IAM as a
+                # literal. Adding !Sub here makes CloudFormation try to resolve it and fail the
+                # stack with "variable aws:username not found".
                 Resource: arn:aws:ssm:*:*:session/${aws:username}-*
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                  - ssm:DescribeInstanceInformation
+                  - ssm:DescribeSessions
+                  - ssm:GetConnectionStatus
+                # These four are not resource-scopable: AWS defines them without a resource
+                # type, so a narrower ARN would deny rather than restrict. They are read-only.
+                Resource: '*'
+
+Outputs:
+  InstanceId:
+    Value: !Ref EC2Instance
+    Description: Instance to connect to with `aws ssm start-session --target <id>`.
+  LoginRoleArn:
+    Value: !GetAtt IAMroleToLoginIntoInstance.Arn
+    Description: Role to assume in order to start a session. Requires MFA.
+  ResolvedAmiId:
+    Value: !Ref LatestAmiId
+    Description: The AMI the SSM parameter resolved to at deploy time.

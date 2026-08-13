@@ -84,7 +84,7 @@ region = us-east-1
 
 [profile IAMroleToLoginIntoInstance]
 region = us-east-1
-role_arn = arn:aws:iam::your-aws-account-id:role/IAMroleToLoginIntoInstance
+role_arn = arn:aws:iam::YOUR-ACCOUNT-ID:role/IAMroleToLoginIntoInstance
 source_profile = default
 ```
 
@@ -106,7 +106,7 @@ aws iam list-users --profile IAMroleToLoginIntoInstance
 
 Result:
 ```
-An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:sts::your-aws-account-id:assumed-role/IAMroleToLoginIntoInstance/botocore-session-********** is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::your-aws-account-id:user/
+An error occurred (AccessDenied) when calling the ListUsers operation: User: arn:aws:sts::YOUR-ACCOUNT-ID:assumed-role/IAMroleToLoginIntoInstance/botocore-session-********** is not authorized to perform: iam:ListUsers on resource: arn:aws:iam::YOUR-ACCOUNT-ID:user/
 ```
 
 Great! Everything works as expected!
